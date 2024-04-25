@@ -17,15 +17,19 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.datastoreexample.ui.theme.DataStoreExampleTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,13 +50,18 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting() {
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val dataStore = UserDataStore(context)
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxSize()
     ) {
         var email by rememberSaveable { mutableStateOf("") }
-
+        val userEmail by dataStore.getEmail.collectAsState(initial = "")
         TextField(
             value = email,
             onValueChange = { email = it },
@@ -62,10 +71,14 @@ fun Greeting() {
                 .padding(horizontal = 30.dp)
         )
         Spacer(modifier = Modifier.height(25.dp))
-        Button(onClick = { /*TODO*/ }) {
+        Button(onClick = {
+            scope.launch {
+                dataStore.saveEmail(email)
+            }
+        }) {
             Text("Guardar email")
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Text("Email")
+        Text(userEmail)
     }
 }

@@ -22,6 +22,6 @@ class UserDataStore(private val context: Context) {
 
     companion object {
         private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "userData")
-        val USER_EMAIL = stringPreferencesKey("user_email")
+        private val USER_EMAIL = stringPreferencesKey("user_email")
     }
 }
