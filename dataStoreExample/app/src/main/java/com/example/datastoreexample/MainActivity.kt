@@ -14,6 +14,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -25,7 +26,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.datastoreexample.ui.theme.DataStoreExampleTheme
@@ -35,13 +35,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            DataStoreExampleTheme {
+            val userDataStore = UserDataStore(context = this)
+            val darkMode by userDataStore.isDarkMode.collectAsState(initial = false)
+            DataStoreExampleTheme(
+                darkTheme = darkMode
+            ) {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting()
+                    Greeting(userDataStore = userDataStore, isDarkMode = darkMode)
                 }
             }
         }
@@ -49,11 +53,11 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting() {
-
-    val context = LocalContext.current
+fun Greeting(
+    userDataStore: UserDataStore,
+    isDarkMode: Boolean
+) {
     val scope = rememberCoroutineScope()
-    val dataStore = UserDataStore(context)
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -61,7 +65,7 @@ fun Greeting() {
         modifier = Modifier.fillMaxSize()
     ) {
         var email by rememberSaveable { mutableStateOf("") }
-        val userEmail by dataStore.getEmail.collectAsState(initial = "")
+        val userEmail by userDataStore.getEmail.collectAsState(initial = "")
         TextField(
             value = email,
             onValueChange = { email = it },
@@ -73,12 +77,20 @@ fun Greeting() {
         Spacer(modifier = Modifier.height(25.dp))
         Button(onClick = {
             scope.launch {
-                dataStore.saveEmail(email)
+                userDataStore.saveEmail(email)
             }
         }) {
             Text("Guardar email")
         }
         Spacer(modifier = Modifier.height(16.dp))
         Text(userEmail)
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Switch(checked = isDarkMode, onCheckedChange = { isChecked ->
+            scope.launch {
+                userDataStore.saveDarkMode(isDarkMode = isChecked)
+            }
+        })
+
     }
 }
