@@ -3,6 +3,7 @@ package com.example.datastoreexample
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -20,8 +21,18 @@ class UserDataStore(private val context: Context) {
         }
     }
 
+    val isDarkMode: Flow<Boolean> = context.dataStore.data
+        .map { userData -> userData[DARK_MODE] ?: false }
+
+    suspend fun saveDarkMode(isDarkMode: Boolean) {
+        context.dataStore.edit { userData ->
+            userData[DARK_MODE] = isDarkMode
+        }
+    }
+
     companion object {
         private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "userData")
         private val USER_EMAIL = stringPreferencesKey("user_email")
+        private val DARK_MODE = booleanPreferencesKey("dark_mode")
     }
 }
